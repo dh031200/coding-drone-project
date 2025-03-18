@@ -5,7 +5,7 @@ import { faUser } from "@fortawesome/free-solid-svg-icons";
 import MainButton from "../../../shared/ui/MainButton.tsx";
 import { useState } from "react";
 import { axiosInstance } from "../../../shared/libs/axios.ts";
-import { AxiosError, isAxiosError } from "axios";
+import { isAxiosError } from "axios";
 
 interface SignupForm {
   userid: string;
