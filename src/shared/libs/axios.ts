@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 
 interface TokenPayload {
   exp: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 class TokenManager {
@@ -43,23 +43,22 @@ class TokenManager {
   async refreshAccessToken(): Promise<string> {
     if (this.refreshPromise) return this.refreshPromise;
 
-    this.refreshPromise = new Promise(async (resolve, reject) => {
-      try {
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/refresh_token`,
-        );
-        const newAccessToken = response.data.access_token;
-
-        this.setAccessToken(newAccessToken);
-        resolve(newAccessToken);
-      } catch (error) {
-        this.removeAccessToken();
-        sessionStorage.clear();
-        window.location.href = "/";
-        reject(error);
-      } finally {
-        this.refreshPromise = null;
-      }
+    this.refreshPromise = new Promise((resolve, reject) => {
+      axios.post(`${import.meta.env.VITE_API_URL}/refresh_token`)
+        .then(response => {
+          const newAccessToken = response.data.access_token;
+          this.setAccessToken(newAccessToken);
+          resolve(newAccessToken);
+        })
+        .catch(error => {
+          this.removeAccessToken();
+          sessionStorage.clear();
+          window.location.href = "/";
+          reject(error);
+        })
+        .finally(() => {
+          this.refreshPromise = null;
+        });
     });
 
     return this.refreshPromise;

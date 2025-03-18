@@ -5,6 +5,7 @@ import { faUser } from "@fortawesome/free-solid-svg-icons";
 import MainButton from "../../../shared/ui/MainButton.tsx";
 import { useState } from "react";
 import { axiosInstance } from "../../../shared/libs/axios.ts";
+import { AxiosError, isAxiosError } from "axios";
 
 interface SignupForm {
   userid: string;
@@ -47,8 +48,8 @@ const InstructorSignup = ({ onClose }: { onClose: () => void }) => {
         alert("회원가입이 완료되었습니다.");
         onClose();
       }
-    } catch (error: any) {
-      if (error.response?.status === 409) {
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response?.status === 409) {
         setError("이미 존재하는 아이디입니다.");
       } else {
         setError("회원가입에 실패했습니다. 다시 시도해주세요.");
