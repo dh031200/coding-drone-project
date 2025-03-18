@@ -6,10 +6,11 @@ import { UseGetLectureByCode } from "../../lecture/hooks/api/useGetLectureByCode
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../shared/context/authContext.tsx";
 import { debounce } from "../../../shared/utils/debounce.ts";
+import { AxiosError } from "axios";
 
 export const useStudentLogin = () => {
   const navigate = useNavigate();
-  const { mutate: lectureConnectMutate, data } = useLectureConnectMutation();
+  const { mutate: lectureConnectMutate } = useLectureConnectMutation();
   const { setSavedLecture } = useLecture();
   const [form, setForm] = useState({
     code: "",
@@ -46,7 +47,7 @@ export const useStudentLogin = () => {
     }
     setCodeCheck(true);
     setErrors((prev) => ({ ...prev, code: "" }));
-  }, [lectureData]);
+  }, [lectureData, setSavedLecture]);
 
   useEffect(() => {
     if (!getLectureError) return;
@@ -57,22 +58,36 @@ export const useStudentLogin = () => {
     setCodeCheck(false);
   }, [getLectureError]);
 
-  const { mutate } = useLectureConnectMutation();
-
   const handleLoginOnClick = () => {
     if (form.name.trim().length === 0) {
       setErrors((prev) => ({ ...prev, name: "이름을 입력해주세요!" }));
       return;
     }
-    mutate(form, {
+
+    // 세션 스토리지에서 이전 로그인 정보 확인
+    const previousId = sessionStorage.getItem("id");
+    const previousName = sessionStorage.getItem("name");
+    const previousCode = sessionStorage.getItem("code");
+
+    // 동일한 이름과 코드로 재로그인하는 경우
+    if (previousName === form.name && previousCode === form.code) {
+      sessionStorage.setItem("id", previousId || "");
+      sessionStorage.setItem("name", form.name);
+      setRole("student");
+      navigate("/workspace");
+      return;
+    }
+
+    lectureConnectMutate(form, {
       onSuccess: (data) => {
         sessionStorage.setItem("id", data.id);
         sessionStorage.setItem("name", data.name);
         setRole("student");
         navigate("/workspace");
       },
-      onError: (error: any) => {
-        if (error?.response?.status === 400) {
+      onError: (error: Error) => {
+        const axiosError = error as AxiosError;
+        if (axiosError?.response?.status === 400) {
           setErrors((prev) => ({ ...prev, name: "이미 사용중인 이름입니다." }));
         }
       },

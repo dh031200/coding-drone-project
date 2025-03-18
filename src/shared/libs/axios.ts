@@ -69,13 +69,14 @@ class TokenManager {
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: { "Content-Type": "application/json" },
+  withCredentials: true,
 });
 
 const tokenManager = TokenManager.getInstance();
 
 axiosInstance.interceptors.request.use(
   async (config) => {
-    if (["/login", "/lecture_connect"].includes(config.url || "")) {
+    if (["/auth/login", "/auth/signup", "/lecture_connect"].includes(config.url || "")) {
       return config;
     }
     const token = tokenManager.getAccessToken();
@@ -94,7 +95,7 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     if (
-      !["/login", "/lecture_connect"].includes(originalRequest.url || "") &&
+      !["/auth/login", "/auth/signup", "/lecture_connect"].includes(originalRequest.url || "") &&
       error.response?.status === 401 &&
       !originalRequest._retry
     ) {

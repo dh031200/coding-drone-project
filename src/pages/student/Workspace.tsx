@@ -1,10 +1,11 @@
 import React, { useCallback } from "react";
 import WorkspaceContent from "./workspaceContent.tsx";
-import { useLecture } from "../../shared/context/lectureProvider.tsx";
 import { useStudentSocket } from "../../features/student/hooks/useStudentSocket";
+import { useNavigate } from "react-router-dom";
 
 const Workspace = () => {
-  const { socketState, sendMessage } = useStudentSocket();
+  const { socketState, sendMessage, socket } = useStudentSocket();
+  const navigate = useNavigate();
 
   const handleCodeChange = useCallback(
     (code: string) => {
@@ -24,6 +25,14 @@ const Workspace = () => {
     [socketState.isDroneEnabled, sendMessage]
   );
 
+  const handleLogout = () => {
+    if (socket?.connected) {
+      socket.disconnect();
+    }
+    sessionStorage.clear();
+    navigate("/", { replace: true });
+  };
+
   return (
     <div
       className="w-full h-full bg-amber-50 rounded-lg shadow flex flex-col pt-3 pb-8 px-8 mx-36"
@@ -39,7 +48,12 @@ const Workspace = () => {
             </span>
           </div>
           <div>
-            <button className="bg-zinc-200 text-zinc-700 rounded font-semibold py-1 px-2">로그아웃</button>
+            <button 
+              className="bg-zinc-200 text-zinc-700 rounded font-semibold py-1 px-2 hover:bg-zinc-300 transition-colors"
+              onClick={handleLogout}
+            >
+              로그아웃
+            </button>
           </div>
         </div>
       </div>
