@@ -8,7 +8,8 @@ interface ILectureContext {
   hasSavedLecture: boolean;
 }
 
-const LectureContext = createContext<ILectureContext | null>(null);
+export const LectureContext = createContext<ILectureContext | null>(null);
+
 export const LectureProvider = ({ children }: { children: React.ReactNode }) => {
   const sessionSavedCode = sessionStorage.getItem("code");
   const sessionSavedLectureId = sessionStorage.getItem("lectureId");

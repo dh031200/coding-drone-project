@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { cls } from "../../../shared/utils/cls.ts";
 import { AnimatePresence, motion } from "framer-motion";
 import DroneInfo from "./DroneInfo";
@@ -39,8 +39,8 @@ const DroneControl = ({
   const portRef = useRef<SerialPort | null>(null);
   const writerRef = useRef<WritableStreamDefaultWriter | null>(null);
 
-  // 드론 제어 명령어
-  const droneCommands = {
+  // 드론 제어 명령어를 useMemo로 감싸기
+  const droneCommands = useMemo(() => ({
     takeoff: () => new Uint8Array([0x0a, 0x55, 0x11, 0x02, 0x70, 0x10, 0x07, 0x11, 0xf3, 0xd2]),
     land: () => new Uint8Array([0x0a, 0x55, 0x11, 0x02, 0x70, 0x10, 0x07, 0x12, 0xa7, 0x89]),
     emergency: () => new Uint8Array([0x0a, 0x55, 0x11, 0x02, 0x70, 0x10, 0x07, 0x10, 0xb5, 0x34]),
@@ -65,7 +65,7 @@ const DroneControl = ({
         0x00, // checksum (실제 구현 필요)
       ]);
     },
-  };
+  }), []);
 
   // 드론 연결 처리
   const connectDrone = async () => {
@@ -111,7 +111,7 @@ const DroneControl = ({
   };
 
   // 드론 명령 실행
-  const sendDroneCommand = async (command: Uint8Array) => {
+  const sendDroneCommand = useCallback(async (command: Uint8Array) => {
     if (writerRef.current) {
       try {
         await writerRef.current.write(command);
@@ -119,10 +119,10 @@ const DroneControl = ({
         console.error("명령 전송 실패:", error);
       }
     }
-  };
+  }, []);
 
-  // 자세 제어 명령 전송
-  const sendAttitudeCommand = async () => {
+  // 자세 제어 명령 전송을 useCallback으로 감싸기
+  const sendAttitudeCommand = useCallback(async () => {
     if (!isOn) return;
 
     try {
@@ -132,7 +132,7 @@ const DroneControl = ({
     } catch (error) {
       console.error("자세 제어 명령 전송 실패:", error);
     }
-  };
+  }, [isOn, roll, pitch, droneCommands, sendDroneCommand, setAttitude]);
 
   // roll 또는 pitch 값이 변경될 때 자세 제어 명령 전송
   useEffect(() => {
@@ -143,7 +143,7 @@ const DroneControl = ({
 
       return () => clearTimeout(timer);
     }
-  }, [roll, pitch, isOn]);
+  }, [roll, pitch, isOn, sendAttitudeCommand]);
 
   // 이벤트 리스너를 통한 드론 명령 처리
   useEffect(() => {
@@ -174,7 +174,7 @@ const DroneControl = ({
     return () => {
       window.removeEventListener("drone-command", handleDroneCommand);
     };
-  }, [isOn]);
+  }, [isOn, droneCommands, sendDroneCommand]);
 
   // 슬라이더 값 변경 처리
   const handleRollChange = (e: React.ChangeEvent<HTMLInputElement>) => {

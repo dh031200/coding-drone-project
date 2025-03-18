@@ -1,11 +1,11 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 interface AuthContextType {
   role: "instructor" | "student" | null;
   setRole: (role: "instructor" | "student" | null) => void;
 }
 
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
   role: null,
   setRole: () => {},
 });
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } else if (!instructorId && !studentId && role !== null) {
       setRole(null);
     }
-  }, []);
+  }, [role]);
 
   return <AuthContext.Provider value={{ role, setRole }}>{children}</AuthContext.Provider>;
 };

@@ -97,7 +97,7 @@ export const useStudentSocket = () => {
       console.log("🔌 소켓 연결 해제");
       socket.disconnect();
     };
-  }, [savedLecture.code]);
+  }, [savedLecture.code, setSocketState]);
 
   // 코드 제출 함수
   const submitCode = useCallback(

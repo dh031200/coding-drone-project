@@ -36,7 +36,7 @@ export interface ISocketEvents {
   };
 }
 
-interface DebouncedFunction<T extends (...args: any[]) => void> {
+interface DebouncedFunction<T extends (...args: unknown[]) => void> {
   (...args: Parameters<T>): void;
   cancel: () => void;
 }

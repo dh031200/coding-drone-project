@@ -24,7 +24,7 @@ export const useLectureModal = () => {
 
   useEffect(() => {
     if (!hasSavedLecture) refetch();
-  }, [hasSavedLecture]);
+  }, [hasSavedLecture, refetch]);
 
   const handleClickCreateButton = () => {
     const instructorId = sessionStorage.getItem("instructorId");
